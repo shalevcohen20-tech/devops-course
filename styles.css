@@ -276,6 +276,8 @@ h2 {
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 15px;
     margin-top: 20px;
+    position: relative;
+    z-index: 2;
 }
 
 .skill-tag {
@@ -290,6 +292,8 @@ h2 {
     text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
     position: relative;
     cursor: pointer;
+    z-index: 2;
+    overflow: hidden;
 }
 
 .skill-tag::before {
