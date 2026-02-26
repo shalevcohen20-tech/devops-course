@@ -96,6 +96,21 @@
             }
         }
 
+        @keyframes neonFlicker {
+            0%, 18%, 22%, 25%, 54%, 56%, 100% {
+                text-shadow: 0 0 10px #00ff41, 0 0 20px #00ff41, 0 0 30px #00ff41, 0 0 40px #00ff41, 0 0 70px #00ff41;
+                opacity: 1;
+            }
+            20%, 24%, 55% {
+                text-shadow: 0 0 5px #00ff41, 0 0 10px #00ff41;
+                opacity: 0.6;
+            }
+            26%, 50% {
+                text-shadow: 0 0 20px #00ff41, 0 0 40px #00ff41, 0 0 60px #00ff41, 0 0 80px #00ff41;
+                opacity: 1;
+            }
+        }
+
         body {
             font-family: 'Courier New', monospace;
             line-height: 1.6;
@@ -202,8 +217,8 @@
             font-size: 2.5em;
             color: #00ff41;
             margin-bottom: 10px;
-            text-shadow: 0 0 20px rgba(0, 255, 65, 0.8);
-            animation: flicker 3s infinite;
+            text-shadow: 0 0 20px #00ff41, 0 0 40px #00ff41;
+            animation: neonFlicker 2.5s infinite;
             position: relative;
             letter-spacing: 2px;
         }
