@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevOps Engineer Portfolio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @keyframes matrixRain {
+            0% {
+                transform: translateY(-100%);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh);
+                opacity: 0;
+            }
+        }
+
+        @keyframes glitch {
+            0% {
+                text-shadow: 0 0 20px rgba(0, 255, 65, 0.8);
+            }
+            20% {
+                text-shadow: -2px 0 20px rgba(255, 0, 0, 0.5), 2px 0 20px rgba(0, 255, 65, 0.8);
+            }
+            40% {
+                text-shadow: 0 0 20px rgba(0, 255, 65, 0.8);
+            }
+            60% {
+                text-shadow: 2px 0 20px rgba(0, 128, 255, 0.5), -2px 0 20px rgba(0, 255, 65, 0.8);
+            }
+            80% {
+                text-shadow: 0 0 20px rgba(0, 255, 65, 0.8);
+            }
+            100% {
+                text-shadow: 0 0 20px rgba(0, 255, 65, 0.8);
+            }
+        }
+
+        @keyframes scanlines {
+            0% {
+                transform: translateY(0);
+            }
+            100% {
+                transform: translateY(10px);
+            }
+        }
+
+        @keyframes stampPulse {
+            0%, 100% {
+                box-shadow: 0 0 10px rgba(0, 255, 65, 0.6), inset 0 0 10px rgba(0, 255, 65, 0.2);
+                transform: rotate(0deg) scale(1);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(0, 255, 65, 1), inset 0 0 15px rgba(0, 255, 65, 0.3);
+                transform: rotate(0deg) scale(1.05);
+            }
+        }
+
+        .stamp {
+            display: inline-block;
+            border: 3px solid #00ff41;
+            padding: 8px 15px;
+            margin: 0 20px;
+            transform: rotate(0deg);
+            font-weight: bold;
+            font-size: 0.7em;
+            letter-spacing: 3px;
+            color: #00ff41;
+            text-shadow: 0 0 10px rgba(0, 255, 65, 0.8);
+            animation: stampPulse 2s ease-in-out infinite;
+            position: relative;
+            background: transparent;
+        }
+
+        .stamp::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border: 1px dashed #00ff41;
+            opacity: 0.5;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: 0 0 15px rgba(0, 255, 65, 0.5), inset 0 0 15px rgba(0, 255, 65, 0.05);
+            }
+            50% {
+                box-shadow: 0 0 30px rgba(0, 255, 65, 0.8), inset 0 0 20px rgba(0, 255, 65, 0.1);
+            }
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            color: #00ff41;
+            background: #000000;
+            min-height: 100vh;
+            text-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+            position: relative;
+            overflow-x: hidden;
+            cursor: crosshair;
+        }
+
+        #matrix-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 3;
+            animation: scanlines 8s linear infinite;
+        }
+
+        #cursor-glow {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            border: 2px solid rgba(0, 255, 65, 0.6);
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.8), inset 0 0 20px rgba(0, 255, 65, 0.2);
+            pointer-events: none;
+            z-index: 4;
+            display: none;
+            transform: translate(-30px, -30px);
+        }
+
+        .mouse-trail {
+            position: fixed;
+            pointer-events: none;
+            z-index: 4;
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle, rgba(0, 255, 65, 1), rgba(0, 255, 65, 0));
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.8);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: rgba(0, 40, 0, 0.8);
+            padding: 60px 40px;
+            text-align: center;
+            border-radius: 0;
+            border: 2px solid #00ff41;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.5), inset 0 0 20px rgba(0, 255, 65, 0.1);
+            margin-bottom: 30px;
+            animation: pulse-glow 4s ease-in-out infinite;
+            position: relative;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(0, 255, 65, 0.1) 50%, transparent 70%);
+            animation: glitch 4s infinite;
+            pointer-events: none;
+            border-radius: 0;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            color: #00ff41;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(0, 255, 65, 0.8);
+            animation: flicker 3s infinite;
+            position: relative;
+            letter-spacing: 2px;
+        }
+
+        header p {
+            font-size: 1.2em;
+            color: #00ff41;
+            margin-bottom: 5px;
+            text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+            position: relative;
+        }
+
+        .subtitle {
+            color: #00ff41;
+            font-size: 0.95em;
+            opacity: 0.8;
+        }
+
+        section {
+            background: rgba(0, 40, 0, 0.6);
+            padding: 40px;
+            border-radius: 0;
+            margin-bottom: 30px;
+            border: 1px solid #00ff41;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.3), inset 0 0 15px rgba(0, 255, 65, 0.05);
+            animation: pulse-glow 5s ease-in-out infinite;
+            position: relative;
+            overflow: hidden;
+        }
+
+        section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent 30%, rgba(0, 255, 65, 0.05) 50%, transparent 70%);
+            animation: glitch 6s infinite;
+            pointer-events: none;
+        }
+
+        h2 {
+            color: #00ff41;
+            font-size: 1.8em;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #00ff41;
+            padding-bottom: 10px;
+            text-shadow: 0 0 10px rgba(0, 255, 65, 0.6);
+            position: relative;
+            letter-spacing: 1px;
+        }
+
+        .about-content {
+            font-size: 1.05em;
+            line-height: 1.8;
+            color: #00ff41;
+        }
+
+        .skills {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .skill-tag {
+            background: rgba(0, 100, 0, 0.4);
+            border: 2px solid #00ff41;
+            padding: 12px 15px;
+            border-radius: 0;
+            text-align: center;
+            font-weight: 500;
+            color: #00ff41;
+            transition: all 0.3s ease;
+            text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .skill-tag::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 65, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .skill-tag:hover {
+            background: rgba(0, 255, 65, 0.2);
+            color: #ffffff;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.8), 0 0 40px rgba(0, 255, 65, 0.5), inset 0 0 20px rgba(0, 255, 65, 0.2);
+            text-shadow: 0 0 10px rgba(0, 255, 65, 1);
+            transform: scale(1.05);
+        }
+
+        .skill-tag:hover::before {
+            left: 100%;
+        }
+
+        .experience-item {
+            margin-bottom: 25px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .experience-item:last-child {
+            border-bottom: none;
+        }
+
+        .job-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #00ff41;
+            text-shadow: 0 0 10px rgba(0, 255, 65, 0.6);
+        }
+
+        .company {
+            color: #00ff41;
+            font-weight: 500;
+            margin: 5px 0;
+            opacity: 0.9;
+        }
+
+        .duration {
+            color: #00ff41;
+            font-size: 0.95em;
+            margin-bottom: 10px;
+            opacity: 0.7;
+        }
+
+        .description {
+            color: #00ff41;
+            line-height: 1.6;
+            margin-top: 10px;
+            opacity: 0.85;
+        }
+
+        .contact-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .contact-item {
+            background: rgba(0, 100, 0, 0.3);
+            padding: 15px;
+            border-radius: 0;
+            border: 1px solid #00ff41;
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+        }
+
+        .contact-item strong {
+            color: #00ff41;
+            display: block;
+            margin-bottom: 5px;
+            text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+        }
+
+        .contact-item a {
+            color: #00ff41;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            text-shadow: 0 0 5px rgba(0, 255, 65, 0.3);
+        }
+
+        .contact-item a:hover {
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(0, 255, 65, 1);
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: white;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div id="cursor-glow"></div>
+    <canvas id="matrix-canvas"></canvas>
+    <div class="container">
+        <header>
+            <h1>Shalev Cohen</h1>
+            <p>DevOps Engineer</p>
+            <p class="subtitle">Infrastructure • Automation • Cloud Solutions</p>
+        </header>
+
+        <section id="about">
+            <h2>About Me</h2>
+            <div class="about-content">
+                <p>I am a dedicated DevOps Engineer with a passion for building scalable, reliable, and efficient infrastructure. With experience in cloud platforms, containerization, and continuous integration/deployment, I help organizations streamline their development and deployment processes. I thrive in collaborative environments and am committed to implementing best practices in infrastructure management and automation.</p>
+            </div>
+        </section>
+
+        <section id="skills">
+            <h2>Technical Skills</h2>
+            <div class="skills">
+                <div class="skill-tag">Docker</div>
+                <div class="skill-tag">Kubernetes</div>
+                <div class="skill-tag">AWS</div>
+                <div class="skill-tag">Azure</div>
+                <div class="skill-tag">CI/CD Pipelines</div>
+                <div class="skill-tag">Jenkins</div>
+                <div class="skill-tag">GitLab CI</div>
+                <div class="skill-tag">Terraform</div>
+                <div class="skill-tag">Ansible</div>
+                <div class="skill-tag">Linux/Unix</div>
+                <div class="skill-tag">Git</div>
+                <div class="skill-tag">Monitoring</div>
+                <div class="skill-tag">Python</div>
+                <div class="skill-tag">Bash Scripting</div>
+            </div>
+        </section>
+
+        <section id="experience">
+            <h2>Experience</h2>
+            
+            <div class="experience-item">
+                <div class="job-title">Senior DevOps Engineer</div>
+                <div class="company">Tech Company Inc.</div>
+                <div class="duration">Jan 2024 - Present</div>
+                <div class="description">
+                    • Designed and implemented Kubernetes infrastructure supporting 50+ microservices<br>
+                    • Reduced deployment time by 60% through CI/CD pipeline optimization<br>
+                    • Managed AWS infrastructure with Infrastructure-as-Code using Terraform<br>
+                    • Led team of 3 engineers in monitoring and incident response
+                </div>
+            </div>
+
+            <div class="experience-item">
+                <div class="job-title">DevOps Engineer</div>
+                <div class="company">Digital Solutions LLC</div>
+                <div class="duration">Jun 2022 - Dec 2023</div>
+                <div class="description">
+                    • Implemented Docker containerization for 20+ applications<br>
+                    • Set up and maintained Jenkins CI/CD pipelines<br>
+                    • Automated infrastructure provisioning using Ansible and Terraform<br>
+                    • Implemented comprehensive monitoring and logging solutions
+                </div>
+            </div>
+
+            <div class="experience-item">
+                <div class="job-title">Junior DevOps Engineer</div>
+                <div class="company">StartUp Ventures</div>
+                <div class="duration">Jan 2021 - May 2022</div>
+                <div class="description">
+                    • Assisted in cloud infrastructure setup and management<br>
+                    • Maintained and updated deployment pipelines<br>
+                    • Managed Linux servers and performed system administration<br>
+                    • Documented infrastructure and deployment processes
+                </div>
+            </div>
+        </section>
+
+        <section id="contact">
+            <h2>Contact</h2>
+            <div class="contact-info">
+                <div class="contact-item">
+                    <strong>Email</strong>
+                    <a href="mailto:your.email@example.com">your.email@example.com</a>
+                </div>
+                <div class="contact-item">
+                    <strong>Phone</strong>
+                    <a href="tel:+1234567890">+1 (234) 567-890</a>
+                </div>
+                <div class="contact-item">
+                    <strong>LinkedIn</strong>
+                    <a href="https://linkedin.com/in/yourprofile" target="_blank">linkedin.com/in/yourprofile</a>
+                </div>
+                <div class="contact-item">
+                    <strong>GitHub</strong>
+                    <a href="https://github.com/yourprofile" target="_blank">github.com/yourprofile</a>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>&copy; 2026 DevOps Engineer Portfolio. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Matrix Rain Effect
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const characters = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+        const charArray = characters.split('');
+
+        const fontSize = 16;
+        const columns = Math.ceil(canvas.width / fontSize);
+        
+        // Create column objects with more properties
+        const columns_arr = [];
+        for (let i = 0; i < columns; i++) {
+            columns_arr.push({
+                x: i * fontSize,
+                y: Math.random() * canvas.height,
+                speed: Math.random() * 2 + 1,
+                trail: Math.random() * 30 + 20,
+                chars: []
+            });
+            
+            // Generate initial characters for each column
+            for (let j = 0; j < columns_arr[i].trail; j++) {
+                columns_arr[i].chars.push(charArray[Math.floor(Math.random() * charArray.length)]);
+            }
+        }
+
+        function draw() {
+            // Fade effect instead of clearing
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.font = `bold ${fontSize}px monospace`;
+
+            for (let i = 0; i < columns_arr.length; i++) {
+                const col = columns_arr[i];
+                
+                // Draw the trail of characters
+                for (let j = 0; j < col.chars.length; j++) {
+                    const char = col.chars[j];
+                    const charY = col.y - j * fontSize;
+                    
+                    // Skip if off screen
+                    if (charY < 0) continue;
+                    
+                    // Head character (bright)
+                    if (j === 0) {
+                        ctx.fillStyle = '#ffffff';
+                        ctx.shadowColor = '#00ff41';
+                        ctx.shadowBlur = 15;
+                    } else {
+                        // Trail characters (fading green)
+                        const alpha = (1 - j / col.trail) * 0.8;
+                        ctx.fillStyle = `rgba(0, 255, 65, ${alpha})`;
+                        ctx.shadowColor = 'rgba(0, 255, 65, 0.5)';
+                        ctx.shadowBlur = 10;
+                    }
+                    
+                    ctx.fillText(char, col.x, charY);
+                }
+                
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+
+                // Move column down
+                col.y += col.speed;
+
+                // Random character at top
+                if (Math.random() > 0.95) {
+                    col.chars.unshift(charArray[Math.floor(Math.random() * charArray.length)]);
+                } else if (Math.random() > 0.98) {
+                    col.chars[0] = charArray[Math.floor(Math.random() * charArray.length)];
+                }
+
+                // Remove characters from trail
+                if (col.chars.length > col.trail) {
+                    col.chars.pop();
+                }
+
+                // Reset column when it goes off screen
+                if (col.y > canvas.height) {
+                    col.y = 0;
+                    col.speed = Math.random() * 2 + 1;
+                    col.chars = [];
+                    for (let j = 0; j < col.trail; j++) {
+                        col.chars.push(charArray[Math.floor(Math.random() * charArray.length)]);
+                    }
+                }
+            }
+        }
+
+        function animate() {
+            draw();
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Mouse tracking effect
+        const cursorGlow = document.getElementById('cursor-glow');
+        let mouseX = 0;
+        let mouseY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+
+            cursorGlow.style.display = 'block';
+            cursorGlow.style.left = mouseX + 'px';
+            cursorGlow.style.top = mouseY + 'px';
+
+            // Create trail particles
+            if (Math.random() > 0.8) {
+                createTrail(mouseX, mouseY);
+            }
+        });
+
+        document.addEventListener('mouseleave', () => {
+            cursorGlow.style.display = 'none';
+        });
+
+        function createTrail(x, y) {
+            const trail = document.createElement('div');
+            trail.className = 'mouse-trail';
+            trail.style.left = (x + (Math.random() - 0.5) * 20) + 'px';
+            trail.style.top = (y + (Math.random() - 0.5) * 20) + 'px';
+            
+            document.body.appendChild(trail);
+
+            // Fade and remove trail
+            let opacity = 1;
+            const fadeInterval = setInterval(() => {
+                opacity -= 0.1;
+                trail.style.opacity = opacity;
+                if (opacity <= 0) {
+                    clearInterval(fadeInterval);
+                    trail.remove();
+                }
+            }, 30);
+        }
+    </script>
+</body>
+</html>
