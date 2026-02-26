@@ -12,7 +12,13 @@ function initMatrixRain() {
     const fontSize = 16;
     const columns = Math.ceil(canvas.width / fontSize);
     
-    // Create column obj
+    // Create column objects with more properties
+    const columns_arr = [];
+    for (let i = 0; i < columns; i++) {
+        columns_arr.push({
+            x: i * fontSize,
+            y: Math.random() * canvas.height,
+            speed: Math.random() * 2 + 1,
             trail: Math.random() * 30 + 20,
             chars: []
         });
@@ -48,6 +54,58 @@ function initMatrixRain() {
                     ctx.shadowBlur = 15;
                 } else {
                     // Trail characters (fading green)
+                    const alpha = (1 - j / col.trail) * 0.8;
+                    ctx.fillStyle = `rgba(0, 255, 65, ${alpha})`;
+                    ctx.shadowColor = 'rgba(0, 255, 65, 0.5)';
+                    ctx.shadowBlur = 10;
+                }
+                
+                ctx.fillText(char, col.x, charY);
+            }
+            
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+
+            // Move column down
+            col.y += col.speed;
+
+            // Random character at top
+            if (Math.random() > 0.95) {
+                col.chars.unshift(charArray[Math.floor(Math.random() * charArray.length)]);
+            } else if (Math.random() > 0.98) {
+                col.chars[0] = charArray[Math.floor(Math.random() * charArray.length)];
+            }
+
+            // Remove characters from trail
+            if (col.chars.length > col.trail) {
+                col.chars.pop();
+            }
+
+            // Reset column when it goes off screen
+            if (col.y > canvas.height) {
+                col.y = 0;
+                col.speed = Math.random() * 2 + 1;
+                col.chars = [];
+                for (let j = 0; j < col.trail; j++) {
+                    col.chars.push(charArray[Math.floor(Math.random() * charArray.length)]);
+                }
+            }
+        }
+    }
+
+    function animate() {
+        draw();
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
+}
 
 // Mouse Tracking Effect
 function initMouseTracking() {
